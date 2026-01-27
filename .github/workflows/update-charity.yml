@@ -1,23 +1,8 @@
-name: Update Charity Raised Total
-
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "*/15 * * * *"
-
-jobs:
-  update:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Update charity.json
         run: |
+          set +e
+          set +o pipefail
+
           FILE="data/charity.json"
 
           echo "Loading current charity.json"
@@ -37,35 +22,31 @@ jobs:
 
           HTML=$(curl -s -L "$URL" || true)
 
+          if [ -z "$HTML" ]; then
+            echo "WARNING: Could not fetch page — keeping previous value"
+            UPDATED=$(echo "$DATA" | jq \
+              --arg updated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+              '.lastUpdated = $updated')
+            echo "$UPDATED" > "$FILE"
+            exit 0
+          fi
+
           FOUND=""
 
-          # Attempt 1: amount_raised.value (newer pages)
           FOUND=$(echo "$HTML" \
             | grep -o '"amount_raised":{"value":[0-9]*' \
             | head -n 1 \
-            | grep -o '[0-9]*')
+            | grep -o '[0-9]*' || true)
 
-          # Attempt 2: legacy amount_raised
           if [ -z "$FOUND" ]; then
             FOUND=$(echo "$HTML" \
               | grep -o '"amount_raised":[0-9]*' \
               | head -n 1 \
-              | grep -o '[0-9]*')
-          fi
-
-          # Attempt 3: displayed Raised $X,XXX.XX
-          if [ -z "$FOUND" ]; then
-            FOUND=$(echo "$HTML" \
-              | grep -o 'Raised[^$]*\$[0-9,]\+\(\.[0-9][0-9]\)\?' \
-              | head -n 1 \
-              | grep -o '[0-9,]\+\(\.[0-9][0-9]\)\?' \
-              | tr -d ',')
-            # convert dollars to cents
-            FOUND=$(awk "BEGIN { printf \"%d\", $FOUND * 100 }" 2>/dev/null || true)
+              | grep -o '[0-9]*' || true)
           fi
 
           if [ -z "$FOUND" ]; then
-            echo "WARNING: Could not determine raised amount — keeping previous value ($CURRENT_RAISED)"
+            echo "WARNING: Could not parse raised amount — keeping previous value ($CURRENT_RAISED)"
             UPDATED=$(echo "$DATA" | jq \
               --arg updated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
               '.lastUpdated = $updated')
@@ -83,17 +64,3 @@ jobs:
             '.raised = $raised | .lastUpdated = $updated')
 
           echo "$UPDATED" > "$FILE"
-
-      - name: Commit and push if changed
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-          if git diff --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git add data/charity.json
-          git commit -m "Update charity raised total"
-          git push
