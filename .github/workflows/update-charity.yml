@@ -1,6 +1,29 @@
-      - name: Fetch and parse Tiltify page
+name: Update Charity Raised Total
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 minutes
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Update charity.json
         run: |
-          DATA=$(cat data/charity.json)
+          set -e
+
+          FILE="data/charity.json"
+
+          echo "Loading current charity.json"
+          DATA=$(cat "$FILE")
 
           ACTIVE=$(echo "$DATA" | jq -r '.active')
           URL=$(echo "$DATA" | jq -r '.url')
@@ -10,28 +33,44 @@
             exit 0
           fi
 
-          echo "Fetching $URL"
+          echo "Fetching Tiltify page:"
+          echo "$URL"
 
           HTML=$(curl -s -L "$URL")
 
-          # Extract embedded JSON containing campaign data
-          JSON=$(echo "$HTML" | sed -n 's/.*"amount_raised":\({[^}]*}\).*/\1/p' | head -n 1)
+          # Grab the first amount_raised value from embedded JSON
+          RAISED=$(echo "$HTML" \
+            | grep -o '"amount_raised":[^,]*' \
+            | head -n 1 \
+            | grep -o '[0-9]\+')
 
-          if [ -z "$JSON" ]; then
-            echo "Could not find embedded campaign JSON"
+          if [ -z "$RAISED" ]; then
+            echo "ERROR: Could not find amount_raised"
             exit 1
           fi
 
-          RAISED=$(echo "$JSON" | jq '.value')
+          echo "Parsed raised cents: $RAISED"
 
-          if [ -z "$RAISED" ] || [ "$RAISED" = "null" ]; then
-            echo "Raised amount not found in JSON"
-            exit 1
-          fi
+          # Convert cents → dollars
+          RAISED_DOLLARS=$(awk "BEGIN { printf \"%.2f\", $RAISED / 100 }")
 
           UPDATED=$(echo "$DATA" | jq \
-            --argjson raised "$RAISED" \
+            --arg raised "$RAISED_DOLLARS" \
             --arg updated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-            '.raised = $raised | .lastUpdated = $updated')
+            '.raised = ($raised | tonumber) | .lastUpdated = $updated')
 
-          echo "$UPDATED" > data/charity.json
+          echo "$UPDATED" > "$FILE"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git add data/charity.json
+          git commit -m "Update charity raised total"
+          git push
