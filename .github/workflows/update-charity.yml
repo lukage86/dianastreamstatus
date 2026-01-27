@@ -3,7 +3,7 @@ name: Update Charity Raised Total
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 minutes
+    - cron: "*/15 * * * *"
 
 jobs:
   update:
@@ -18,8 +18,6 @@ jobs:
 
       - name: Update charity.json
         run: |
-          set -e
-
           FILE="data/charity.json"
 
           echo "Loading current charity.json"
@@ -27,9 +25,10 @@ jobs:
 
           ACTIVE=$(echo "$DATA" | jq -r '.active')
           URL=$(echo "$DATA" | jq -r '.url')
+          CURRENT_RAISED=$(echo "$DATA" | jq -r '.raised')
 
           if [ "$ACTIVE" != "true" ]; then
-            echo "Charity inactive, skipping update"
+            echo "Charity inactive — skipping update"
             exit 0
           fi
 
@@ -38,26 +37,50 @@ jobs:
 
           HTML=$(curl -s -L "$URL")
 
-          # Grab the first amount_raised value from embedded JSON
-          RAISED=$(echo "$HTML" \
-            | grep -o '"amount_raised":[^,]*' \
-            | head -n 1 \
-            | grep -o '[0-9]\+')
+          FOUND=""
 
-          if [ -z "$RAISED" ]; then
-            echo "ERROR: Could not find amount_raised"
-            exit 1
+          # Attempt 1: amount_raised.value (newer pages)
+          FOUND=$(echo "$HTML" \
+            | grep -o '"amount_raised":{"value":[0-9]*' \
+            | head -n 1 \
+            | grep -o '[0-9]*')
+
+          # Attempt 2: legacy amount_raised
+          if [ -z "$FOUND" ]; then
+            FOUND=$(echo "$HTML" \
+              | grep -o '"amount_raised":[0-9]*' \
+              | head -n 1 \
+              | grep -o '[0-9]*')
           fi
 
-          echo "Parsed raised cents: $RAISED"
+          # Attempt 3: displayed Raised $X,XXX.XX
+          if [ -z "$FOUND" ]; then
+            FOUND=$(echo "$HTML" \
+              | grep -o 'Raised[^$]*\$[0-9,]\+\(\.[0-9][0-9]\)\?' \
+              | head -n 1 \
+              | grep -o '[0-9,]\+\(\.[0-9][0-9]\)\?' \
+              | tr -d ',')
+            # convert dollars to cents
+            FOUND=$(awk "BEGIN { printf \"%d\", $FOUND * 100 }" 2>/dev/null || true)
+          fi
 
-          # Convert cents → dollars
-          RAISED_DOLLARS=$(awk "BEGIN { printf \"%.2f\", $RAISED / 100 }")
+          if [ -z "$FOUND" ]; then
+            echo "WARNING: Could not determine raised amount — keeping previous value ($CURRENT_RAISED)"
+            UPDATED=$(echo "$DATA" | jq \
+              --arg updated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+              '.lastUpdated = $updated')
+            echo "$UPDATED" > "$FILE"
+            exit 0
+          fi
+
+          echo "Found raised cents: $FOUND"
+
+          RAISED_DOLLARS=$(awk "BEGIN { printf \"%.2f\", $FOUND / 100 }")
 
           UPDATED=$(echo "$DATA" | jq \
-            --arg raised "$RAISED_DOLLARS" \
+            --argjson raised "$RAISED_DOLLARS" \
             --arg updated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-            '.raised = ($raised | tonumber) | .lastUpdated = $updated')
+            '.raised = $raised | .lastUpdated = $updated')
 
           echo "$UPDATED" > "$FILE"
 
