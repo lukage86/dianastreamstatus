@@ -1,0 +1,52 @@
+name: Update Charity Raised Total
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Fetch Tiltify data
+        env:
+          TILTIFY_TOKEN: ${{ secrets.TILTIFY_TOKEN }}
+        run: |
+          DATA=$(cat data/charity.json)
+
+          ACTIVE=$(echo "$DATA" | jq -r '.active')
+          SLUG=$(echo "$DATA" | jq -r '.slug')
+
+          if [ "$ACTIVE" != "true" ]; then
+            echo "Charity inactive, skipping update"
+            exit 0
+          fi
+
+          RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $TILTIFY_TOKEN" \
+            "https://api.tiltify.com/api/v3/campaigns/$SLUG")
+
+          RAISED=$(echo "$RESPONSE" | jq '.data.attributes.amount_raised.value')
+
+          UPDATED=$(echo "$DATA" | jq \
+            --argjson raised "$RAISED" \
+            --arg updated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+            '.raised = $raised | .lastUpdated = $updated')
+
+          echo "$UPDATED" > data/charity.json
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add data/charity.json
+          git commit -m "Update charity raised total" || exit 0
+          git push
