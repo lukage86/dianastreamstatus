@@ -1,3 +1,21 @@
+name: Update Charity Raised Total
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Update charity.json
         run: |
           set +e
@@ -64,3 +82,17 @@
             '.raised = $raised | .lastUpdated = $updated')
 
           echo "$UPDATED" > "$FILE"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git add data/charity.json
+          git commit -m "Update charity raised total"
+          git push
