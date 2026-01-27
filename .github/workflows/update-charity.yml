@@ -35,7 +35,7 @@ jobs:
           echo "Fetching Tiltify page:"
           echo "$URL"
 
-          HTML=$(curl -s -L "$URL")
+          HTML=$(curl -s -L "$URL" || true)
 
           FOUND=""
 
