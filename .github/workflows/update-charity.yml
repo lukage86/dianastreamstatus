@@ -3,6 +3,7 @@ name: Update Charity Timestamp
 on:
   workflow_dispatch:
   schedule:
+    # Check every 15 minutes, but only updates when active = true
     - cron: "*/15 * * * *"
 
 jobs:
@@ -16,10 +17,17 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Update charity.json
+      - name: Update charity.json (only if active)
         run: |
           FILE="data/charity.json"
           DATA=$(cat "$FILE")
+
+          ACTIVE=$(echo "$DATA" | jq -r '.active')
+
+          if [ "$ACTIVE" != "true" ]; then
+            echo "Charity inactive — skipping update"
+            exit 0
+          fi
 
           UPDATED=$(echo "$DATA" | jq \
             --arg checked "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
