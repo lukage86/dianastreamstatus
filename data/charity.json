@@ -1,7 +1,16 @@
 {
-  "active": false,
-  "name": "Doctors Without Borders",
-  "url": "https://tiltify.com/@dianaoftherose/livestream-fundraiser-for-doctors-without-borders",
-  "logo": "https://assets.tiltify.com/uploads/cause/avatar/21/doctors-without-borders-msf-avatar-1560384352415.png",
-  "raised": 1315.00
+  "active": true,
+  "name": "Gamers Give Back 2025",
+  "url": "https://tiltify.com/@dianaoftherose/dianaoftherose-and-gamers-give-back-2025",
+  "logo": "https://raw.githubusercontent.com/lukage86/dianastreamstatus/main/data/gamersgiveback.png",
+  "raised": 9999.00,
+  "lastChecked": null,
+  "history": [
+    {
+      "name": "Doctors Without Borders",
+      "url": "https://tiltify.com/@dianaoftherose/livestream-fundraiser-for-doctors-without-borders",
+      "raised": 1315.00,
+      "logo": "https://raw.githubusercontent.com/lukage86/dianastreamstatus/main/data/msf.png"
+    }
+  ]
 }
