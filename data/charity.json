@@ -1,16 +1,31 @@
 {
-  "active": true,
-  "name": "American Heart Association",
-  "url": "https://tiltify.com/@dianaoftherose/dianaoftherose-for-heart-month",
-  "logo": "https://assets.tiltify.com/uploads/cause/avatar/683/blob-de7c4af3-a1eb-4ed0-b9ef-c2f3311ee727.jpeg",
-  "raised": 1200.00,
+  "active": false,
+  "name": "",
+  "url": "",
+  "logo": "",
+  "raised": 0,
   "lastChecked": "2026-02-21T23:57:26Z",
+
   "history": [
+    {
+      "name": "American Heart Association",
+      "url": "https://tiltify.com/@dianaoftherose/dianaoftherose-for-heart-month",
+      "raised": 1200.00,
+      "logo": "https://assets.tiltify.com/uploads/cause/avatar/683/blob-de7c4af3-a1eb-4ed0-b9ef-c2f3311ee727.jpeg"
+    },
     {
       "name": "Doctors Without Borders",
       "url": "https://tiltify.com/@dianaoftherose/livestream-fundraiser-for-doctors-without-borders",
       "raised": 1315.00,
       "logo": "https://raw.githubusercontent.com/lukage86/dianastreamstatus/main/data/msf.png"
+    }
+  ],
+
+  "groupEvents": [
+    {
+      "name": "Justice Frontline Aid",
+      "url": "PUT_THE_REAL_LINK_HERE",
+      "raised": 0
     }
   ]
 }
