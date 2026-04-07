@@ -3,8 +3,10 @@ name: Update Charity Timestamp
 on:
   workflow_dispatch:
   schedule:
-    # Check every 15 minutes, but only updates when active = true
     - cron: "*/15 * * * *"
+
+permissions:
+  contents: write
 
 jobs:
   update:
@@ -12,39 +14,112 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
 
-      - name: Update charity.json (only if active)
+      - name: Install dependencies
         run: |
-          FILE="data/charity.json"
-          DATA=$(cat "$FILE")
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
 
-          ACTIVE=$(echo "$DATA" | jq -r '.active')
+      - name: Update charity.json from Tiltify
+        run: |
+          python <<'PY'
+          import json
+          import re
+          import sys
+          from datetime import datetime, timezone
 
-          if [ "$ACTIVE" != "true" ]; then
-            echo "Charity inactive — skipping update"
-            exit 0
-          fi
+          import requests
+          from bs4 import BeautifulSoup
 
-          UPDATED=$(echo "$DATA" | jq \
-            --arg checked "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-            '.lastChecked = $checked')
+          FILE = "data/charity.json"
 
-          echo "$UPDATED" > "$FILE"
+          def now_utc():
+              return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+          def extract_money_values(text):
+              if not text:
+                  return []
+
+              text = text.replace(",", "")
+              matches = re.findall(r"\$?\s*([0-9]+(?:\.[0-9]{1,2})?)", text)
+
+              values = []
+              for m in matches:
+                  try:
+                      values.append(float(m))
+                  except ValueError:
+                      pass
+              return values
+
+          def fetch_tiltify_total(url):
+              headers = {
+                  "User-Agent": "Mozilla/5.0"
+              }
+
+              response = requests.get(url, headers=headers, timeout=30)
+              response.raise_for_status()
+
+              soup = BeautifulSoup(response.text, "html.parser")
+
+              candidates = []
+
+              for tag in soup.find_all(["script", "div", "span", "p", "h1", "h2", "h3", "strong"]):
+                  text = tag.get_text(" ", strip=True)
+                  if text and any(x in text.lower() for x in ["raised", "donated", "$", "goal"]):
+                      candidates.append(text)
+
+              best = None
+              for text in candidates:
+                  values = extract_money_values(text)
+                  if values:
+                      local_best = max(values)
+                      if best is None or local_best > best:
+                          best = local_best
+
+              if best is None:
+                  raise RuntimeError("Could not find fundraiser total on Tiltify page.")
+
+              return round(best, 2)
+
+          with open(FILE, "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          active = data.get("active", False)
+          if active is not True:
+              print("Charity inactive — skipping amount update")
+              data["lastChecked"] = now_utc()
+          else:
+              url = data.get("url")
+              if not url:
+                  raise RuntimeError("No URL found in data/charity.json")
+
+              total = fetch_tiltify_total(url)
+              data["raised"] = total
+              data["lastChecked"] = now_utc()
+              print(f"Updated raised to {total}")
+
+          with open(FILE, "w", encoding="utf-8") as f:
+              json.dump(data, f, indent=2)
+              f.write("\n")
+          PY
 
       - name: Commit and push if changed
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet; then
+          git add data/charity.json
+
+          if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
-          git add data/charity.json
-          git commit -m "Update charity lastChecked"
+          git commit -m "Update charity from Tiltify"
           git push
