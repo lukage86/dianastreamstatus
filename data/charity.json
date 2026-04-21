@@ -1,11 +1,19 @@
+https://tiltify.com/@dianaoftherose/level-up-for-earth-2026
+
 {
   "active": true,
-  "name": "Gamers Outreach Foundation",
-  "url": "https://tiltify.com/@dianaoftherose/support-gamers-for-giving-2026",
-  "logo": "https://assets.tiltify.com/uploads/cause/avatar/28/blob-a5a7d52c-1b26-41d4-817f-4af59e52da4a.png",
+  "name": "Level Up for Earth",
+  "url": "https://tiltify.com/@dianaoftherose/level-up-for-earth-2026",
+  "logo": "https://assets.tiltify.com/uploads/cause/avatar/164/blob-4ae14f21-8b99-452b-bc00-1f9b73b0e608.jpeg",
   "raised": 2000.0,
   "lastChecked": "2026-04-20T23:51:18Z",
   "history": [
+    {
+      "name": "Gamers Outreach Foundation",
+      "url": "https://tiltify.com/@dianaoftherose/support-gamers-for-giving-2026",
+      "raised": 2000.0,
+      "logo": "https://assets.tiltify.com/uploads/cause/avatar/28/blob-a5a7d52c-1b26-41d4-817f-4af59e52da4a.png"
+    },
     {
       "name": "American Heart Association",
       "url": "https://tiltify.com/@dianaoftherose/dianaoftherose-for-heart-month",
@@ -24,6 +32,11 @@
       "name": "Justice Frontline Aid",
       "url": "https://ko-fi.com/danielthedm",
       "raised": 2500.75
+    }
+    {
+      "name": "St. Jude Children's Research Hospital",
+      "url": "https://tiltify.com/@jesthehuman/birthday-2026",
+      "raised": 650.00
     }
   ]
 }
