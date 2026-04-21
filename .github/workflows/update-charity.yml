@@ -41,8 +41,6 @@ jobs:
               return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
           def extract_money(text):
-              if not text:
-                  return None
               m = re.search(r'\$([0-9][0-9,]*\.?[0-9]{0,2})', text)
               if not m:
                   return None
@@ -53,15 +51,17 @@ jobs:
                   browser = p.chromium.launch(headless=True)
                   page = browser.new_page()
 
-                  page.goto(url, wait_until="domcontentloaded", timeout=60000)
-                  page.wait_for_timeout(8000)
+                  page.goto(url, wait_until="networkidle", timeout=60000)
+
+                  # Give the page a moment in case the amount populates late
+                  page.wait_for_timeout(5000)
 
                   body_text = page.locator("body").inner_text()
 
+                  # Try the simplest possible text pattern first
                   patterns = [
                       r'Raised\s*\$([0-9][0-9,]*\.?[0-9]{0,2})',
                       r'Raised\s+.*?\$([0-9][0-9,]*\.?[0-9]{0,2})',
-                      r'\$([0-9][0-9,]*\.?[0-9]{0,2})\s*Raised',
                   ]
 
                   for pattern in patterns:
@@ -70,39 +70,33 @@ jobs:
                           browser.close()
                           return float(m.group(1).replace(",", ""))
 
-                  candidate_selectors = [
-                      "text=/^Raised$/i",
-                      "text=/Raised/i"
-                  ]
+                  # Fallback: inspect elements containing the word Raised
+                  raised_locs = page.locator("text=/^Raised$/i")
+                  count = raised_locs.count()
 
-                  for selector in candidate_selectors:
-                      locs = page.locator(selector)
-                      count = locs.count()
+                  for i in range(count):
+                      try:
+                          el = raised_locs.nth(i)
+                          parent_text = el.locator("xpath=..").inner_text()
+                          amt = extract_money(parent_text)
+                          if amt is not None:
+                              browser.close()
+                              return amt
 
-                      for i in range(count):
-                          try:
-                              el = locs.nth(i)
+                          grandparent_text = el.locator("xpath=../..").inner_text()
+                          amt = extract_money(grandparent_text)
+                          if amt is not None:
+                              browser.close()
+                              return amt
+                      except Exception:
+                          pass
 
-                              texts_to_try = [
-                                  el.inner_text(),
-                                  el.locator("xpath=..").inner_text(),
-                                  el.locator("xpath=../..").inner_text(),
-                                  el.locator("xpath=../../..").inner_text(),
-                              ]
-
-                              for txt in texts_to_try:
-                                  amt = extract_money(txt)
-                                  if amt is not None:
-                                      browser.close()
-                                      return amt
-                          except Exception:
-                              pass
-
+                  # Last fallback: dump some debug so the log shows what GitHub actually saw
                   print("DEBUG: first 4000 chars of rendered body text:")
                   print(body_text[:4000])
 
                   browser.close()
-                  raise RuntimeError(f"Could not find fundraiser total on Tiltify page: {url}")
+                  raise RuntimeError("Could not find fundraiser total on Tiltify page.")
 
           with open(FILE, "r", encoding="utf-8") as f:
               data = json.load(f)
@@ -116,12 +110,12 @@ jobs:
 
               total = fetch_tiltify_total(url)
               data["raised"] = round(total, 2)
-              print(f"Updated active charity total to {data['raised']}")
+              print(f"Updated raised to {data['raised']}")
           else:
               print("Charity inactive — updated lastChecked only")
 
           with open(FILE, "w", encoding="utf-8") as f:
-              json.dump(data, f, indent=2, ensure_ascii=False)
+              json.dump(data, f, indent=2)
               f.write("\n")
           PY
 
