@@ -1,11 +1,17 @@
 {
-  "active": true,
+  "active": false,
   "name": "Level Up for Earth",
   "url": "https://tiltify.com/@dianaoftherose/level-up-for-earth-2026",
   "logo": "https://assets.tiltify.com/uploads/cause/avatar/164/blob-4ae14f21-8b99-452b-bc00-1f9b73b0e608.jpeg",
   "raised": 1017.0,
   "lastChecked": "2026-04-23T00:03:39Z",
   "history": [
+    {
+      "name": "Level Up for Earth",
+      "url": "https://tiltify.com/@dianaoftherose/level-up-for-earth-2026",
+      "raised": 1017.0,
+      "logo": "https://assets.tiltify.com/uploads/cause/avatar/164/blob-4ae14f21-8b99-452b-bc00-1f9b73b0e608.jpeg"
+    },
     {
       "name": "Gamers Outreach Foundation",
       "url": "https://tiltify.com/@dianaoftherose/support-gamers-for-giving-2026",
