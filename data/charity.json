@@ -1,11 +1,17 @@
 {
-  "active": false,
-  "name": "Level Up for Earth",
-  "url": "https://tiltify.com/@dianaoftherose/level-up-for-earth-2026",
-  "raised": 1027.0,
-  "logo": "https://assets.tiltify.com/uploads/cause/avatar/164/blob-4ae14f21-8b99-452b-bc00-1f9b73b0e608.jpeg",
+  "active": true,
+  "name": "Gold Star Gamers",
+  "url": "https://tiltify.com/gold-star-gamers/realms-of-valor",
+  "raised": 0.0,
+  "logo": "https://assets.tiltify.com/uploads/fundraising_event/avatar/334990/blob-2cb82da6-8a0d-4692-8465-7fc60c013e99.png",
   "lastChecked": "2026-04-28T23:39:56Z",
   "history": [
+    {
+      "name": "Level Up for Earth",
+      "url": "https://tiltify.com/@dianaoftherose/level-up-for-earth-2026",
+      "raised": 1027.0,
+      "logo": "https://assets.tiltify.com/uploads/cause/avatar/164/blob-4ae14f21-8b99-452b-bc00-1f9b73b0e608.jpeg"
+    },
     {
       "name": "Gamers Outreach Foundation",
       "url": "https://tiltify.com/@dianaoftherose/support-gamers-for-giving-2026",
@@ -26,11 +32,6 @@
     }
   ],
   "groupEvents": [
-    {
-      "name": "Gold Star Gamers",
-      "url": "https://tiltify.com/gold-star-gamers/realms-of-valor",
-      "raised": 0.0
-    },
     {
       "name": "St. Jude Children's Research Hospital",
       "url": "https://tiltify.com/@jesthehuman/birthday-2026",
