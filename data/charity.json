@@ -27,14 +27,19 @@
   ],
   "groupEvents": [
     {
-      "name": "Justice Frontline Aid",
-      "url": "https://ko-fi.com/danielthedm",
-      "raised": 2500.75
+      "name": "Gold Star Gamers",
+      "url": "https://goldstargamers.networkforgood.com/projects/170763-2022-gold-star-gamers-funding-campaign",
+      "raised": 0.0
     },
     {
       "name": "St. Jude Children's Research Hospital",
       "url": "https://tiltify.com/@jesthehuman/birthday-2026",
       "raised": 650.0
+    },
+    {
+      "name": "Justice Frontline Aid",
+      "url": "https://ko-fi.com/danielthedm",
+      "raised": 2500.75
     }
   ]
 }
