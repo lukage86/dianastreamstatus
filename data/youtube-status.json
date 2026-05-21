@@ -1,0 +1,11 @@
+{
+  "platform": "youtube",
+  "channel": "DianaOfTheRose",
+  "streamsUrl": "https://www.youtube.com/@DianaOfTheRose/streams",
+  "checkedAt": null,
+  "hasRecentVideo": false,
+  "live": false,
+  "status": "unknown",
+  "message": "Waiting for GitHub Action update.",
+  "latest": null
+}
