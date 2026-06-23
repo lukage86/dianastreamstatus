@@ -1,11 +1,17 @@
 {
   "active": false,
-  "name": "Stream for a Cause",
-  "url": "https://tiltify.com/@dianaoftherose/the-rose-garden-is-painting-the-world-rainbow",
-  "raised": 825.0,
-  "logo": "https://assets.tiltify.com/uploads/cause/avatar/2206/blob-a7e828e6-fd8e-4d9e-8b1f-cfec9ab2d237.png",
+  "name": "Hope for the Day",
+  "url": "https://tiltify.com/@dianaoftherose/the-rose-garden-is-gathering-hope",
+  "raised": 125.00,
+  "logo": "https://assets.tiltify.com/uploads/cause/avatar/315/blob-3fd18d73-d9f8-48de-be16-099d2cbc94b5.png",
   "lastChecked": "2026-06-22T23:44:04Z",
   "history": [
+    {
+      "name": "Stream for a Cause",
+      "url": "https://tiltify.com/@dianaoftherose/the-rose-garden-is-painting-the-world-rainbow",
+      "raised": 825.0,
+      "logo": "https://assets.tiltify.com/uploads/cause/avatar/2206/blob-a7e828e6-fd8e-4d9e-8b1f-cfec9ab2d237.png"
+    },
     {
       "name": "Doctors Without Borders",
       "url": "https://tiltify.com/@dianaoftherose/fundraiser-for-emergency-relief-2026",
