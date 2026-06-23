@@ -1,0 +1,23 @@
+{
+  "fellowship": {
+    "leavingComfyPlace": 1,
+    "councilMeeting": 0,
+    "undergroundCardio": 0,
+    "bigForestFeelings": 0,
+    "boatLogistics": 0
+  },
+  "twoTowers": {
+    "emotionalSupportHorse": 0,
+    "treeMeeting": 0,
+    "wetCaveGuyDrama": 0,
+    "helmWeatherConcerns": 0,
+    "dramaticStairs": 0
+  },
+  "returnKing": {
+    "beaconGroupChat": 0,
+    "spiderAllegedly": 0,
+    "bigGateBadVibes": 0,
+    "jewelryReturnPolicy": 0,
+    "severalEndings": 0
+  }
+}
