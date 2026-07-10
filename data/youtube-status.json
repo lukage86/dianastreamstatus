@@ -3,16 +3,9 @@
   "channel": "DianaOfTheRose",
   "channelId": "UC_NhJlZOgfz09jA1QxY1S6Q",
   "streamsUrl": "https://www.youtube.com/@DianaOfTheRose/streams",
-  "checkedAt": "2026-07-09T23:39:28Z",
-  "hasRecentVideo": true,
-  "live": false,
-  "status": "recent-video",
-  "message": "No clear live stream found in the latest YouTube RSS item.",
-  "latest": {
-    "videoId": "pAJ-I8jwRkw",
-    "title": "A super fast crash course on all the schools of magic in D&D!",
-    "url": "https://www.youtube.com/shorts/pAJ-I8jwRkw",
-    "published": "2026-07-09T23:08:28+00:00",
-    "updated": "2026-07-09T23:36:25+00:00"
-  }
+  "checkedAt": "2026-07-10T00:12:42Z",
+  "live": true,
+  "status": "live",
+  "message": "Diana appears to be live on YouTube.",
+  "pageTitle": "DianaOfTheRose - YouTube"
 }
