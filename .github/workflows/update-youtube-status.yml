@@ -19,147 +19,66 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Check YouTube RSS and update status
+      - name: Check YouTube streams page and update status
         run: |
           python <<'PY'
           import json
+          import re
           import urllib.request
-          import xml.etree.ElementTree as ET
           from datetime import datetime, timezone
           from pathlib import Path
 
+          CHANNEL = "DianaOfTheRose"
           CHANNEL_ID = "UC_NhJlZOgfz09jA1QxY1S6Q"
           STREAMS_URL = "https://www.youtube.com/@DianaOfTheRose/streams"
           OUTPUT = Path("data/youtube-status.json")
 
           def now_utc():
-              return (
-                  datetime.now(timezone.utc)
-                  .replace(microsecond=0)
-                  .isoformat()
-                  .replace("+00:00", "Z")
-              )
+              return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
           def fetch(url):
               req = urllib.request.Request(
                   url,
                   headers={
                       "User-Agent": "Mozilla/5.0",
-                      "Accept": "application/xml,text/xml,text/html;q=0.9,*/*;q=0.8",
+                      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                      "Accept-Language": "en-US,en;q=0.9",
                   },
               )
-
               with urllib.request.urlopen(req, timeout=20) as res:
                   return res.read().decode("utf-8", errors="replace")
 
-          def read_feed(channel_id):
-              feed_url = (
-                  f"https://www.youtube.com/feeds/videos.xml"
-                  f"?channel_id={channel_id}"
-              )
+          html = fetch(STREAMS_URL)
 
-              xml = fetch(feed_url)
+          live_patterns = [
+              r'"style":"LIVE"',
+              r'"text":"LIVE"',
+              r'"label":"LIVE"',
+              r'LIVE NOW',
+              r'watching now',
+              r'isLiveNow":true',
+              r'"isLive":true',
+          ]
 
-              ns = {
-                  "atom": "http://www.w3.org/2005/Atom",
-                  "yt": "http://www.youtube.com/xml/schemas/2015",
-              }
+          is_live = any(re.search(pattern, html, re.IGNORECASE) for pattern in live_patterns)
 
-              root = ET.fromstring(xml)
-              entries = []
-
-              for entry in root.findall("atom:entry", ns):
-                  video_id = entry.findtext(
-                      "yt:videoId",
-                      default="",
-                      namespaces=ns
-                  )
-
-                  title = entry.findtext(
-                      "atom:title",
-                      default="",
-                      namespaces=ns
-                  )
-
-                  published = entry.findtext(
-                      "atom:published",
-                      default="",
-                      namespaces=ns
-                  )
-
-                  updated = entry.findtext(
-                      "atom:updated",
-                      default="",
-                      namespaces=ns
-                  )
-
-                  link_el = entry.find("atom:link", ns)
-
-                  url = (
-                      link_el.attrib.get("href")
-                      if link_el is not None
-                      else f"https://www.youtube.com/watch?v={video_id}"
-                  )
-
-                  entries.append({
-                      "videoId": video_id,
-                      "title": title,
-                      "url": url,
-                      "published": published,
-                      "updated": updated,
-                  })
-
-              return entries
-
-          entries = read_feed(CHANNEL_ID)
-
-          latest = entries[0] if entries else None
+          title_match = re.search(r'<title>(.*?)</title>', html, re.IGNORECASE | re.DOTALL)
+          page_title = title_match.group(1).strip() if title_match else ""
 
           data = {
               "platform": "youtube",
-              "channel": "DianaOfTheRose",
+              "channel": CHANNEL,
               "channelId": CHANNEL_ID,
               "streamsUrl": STREAMS_URL,
               "checkedAt": now_utc(),
-              "hasRecentVideo": bool(latest),
-              "live": False,
-              "status": "unknown",
-              "message": "Check Diana's YouTube streams page.",
-              "latest": latest,
+              "live": is_live,
+              "status": "live" if is_live else "not-live",
+              "message": "Diana appears to be live on YouTube." if is_live else "No live stream detected on Diana's YouTube streams page.",
+              "pageTitle": page_title
           }
 
-          if latest:
-              title = latest["title"].lower()
-
-              live_words = [
-                  "live",
-                  "stream",
-                  "strem",
-                  "thursday"
-              ]
-
-              likely_stream = any(
-                  word in title for word in live_words
-              )
-
-              data["status"] = (
-                  "likely-stream"
-                  if likely_stream
-                  else "recent-video"
-              )
-
-              data["message"] = (
-                  "Diana may be live or recently posted a Thursday stream on YouTube."
-                  if likely_stream
-                  else "No clear live stream found in the latest YouTube RSS item."
-              )
-
           OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-
-          OUTPUT.write_text(
-              json.dumps(data, indent=2) + "\n",
-              encoding="utf-8"
-          )
+          OUTPUT.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
           print(json.dumps(data, indent=2))
           PY
