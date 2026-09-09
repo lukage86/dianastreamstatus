@@ -1,9 +1,9 @@
 {
   "active": false,
-  "name": "Be Goblins, Do Crime",
-  "url": "https://dd.extra-life.org/participants/CraigofInspiration",
-  "raised": 1040.0,
-  "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeX7MpykeOQCI1bHWzFuHx_Dg73um0ZI_GTiLlYOBJbg&s=10",
+  "name": "",
+  "url": "",
+  "raised": ,
+  "logo": ",
   "lastChecked": "2026-09-08T23:42:11Z",
   "history": [
     {
@@ -56,6 +56,11 @@
     }
   ],
   "groupEvents": [
+    {
+      "name": "Be Goblins, Do Crime",
+      "url": "https://dd.extra-life.org/participants/CraigofInspiration",
+      "raised": 1040.0
+    },
     {
       "name": "Gold Star Gamers",
       "url": "https://tiltify.com/gold-star-gamers/realms-of-valor",
